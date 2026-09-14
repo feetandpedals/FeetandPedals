@@ -1,3 +1,4 @@
+import '../core/utils/formatters.dart';
 import 'event_category.dart';
 import 'event_ticket_type.dart';
 import 'location.dart';
@@ -26,7 +27,9 @@ class SportEvent {
     this.location = const EventLocation(),
   });
 
-  DateTime? get startDateTime => DateTime.tryParse(startDate);
+  // Live-verified against GET /api/events: start_date/end_date come back as
+  // "Sep 30, 2026" (MMM d, yyyy), not ISO 8601 — parseApiDate handles both.
+  DateTime? get startDateTime => parseApiDate(startDate);
   double get startingPriceValue => double.tryParse(startingPrice) ?? 0;
   bool get isFree => startingPriceValue == 0;
 
@@ -85,8 +88,8 @@ class EventDetails {
     this.totalReviews = 0,
   });
 
-  DateTime? get startDateTime => DateTime.tryParse(startDate);
-  DateTime? get endDateTime => DateTime.tryParse(endDate);
+  DateTime? get startDateTime => parseApiDate(startDate);
+  DateTime? get endDateTime => parseApiDate(endDate);
 
   double get lowestPrice {
     if (ticketTypes.isEmpty) return 0;

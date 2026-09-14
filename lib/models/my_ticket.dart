@@ -1,3 +1,5 @@
+import '../core/utils/formatters.dart';
+
 /// A purchased/registered ticket, as returned by `GET /my-tickets`. Matches
 /// Eventiq's `Ticket` model in `models/ticket/ticket.dart`.
 class MyTicket {
@@ -31,9 +33,11 @@ class MyTicket {
     this.categoryName = '',
   });
 
-  DateTime? get eventDateTime => DateTime.tryParse('$eventDate $eventTime'.trim());
+  // /api/events confirmed dates come back as "MMM d, yyyy", not ISO 8601 —
+  // /my-tickets is unverified but very likely shares the same formatting.
+  DateTime? get eventDateTime => parseApiDate(eventDate) ?? parseApiDate('$eventDate $eventTime'.trim());
   bool get isUpcoming {
-    final d = DateTime.tryParse(eventDate);
+    final d = parseApiDate(eventDate);
     if (d == null) return true;
     return d.isAfter(DateTime.now().subtract(const Duration(days: 1)));
   }

@@ -20,14 +20,15 @@ class MockCheckoutRepository implements CheckoutRepository {
   @override
   Future<List<PaymentOption>> fetchPaymentOptions() async {
     await Future.delayed(const Duration(milliseconds: 300));
-    // Eventiq's actual supported gateways (payment-gateways.html): PayPal,
-    // Stripe, SSLCommerz, Flutterwave, Paystack, and Bank (manual). Which
-    // ones are active depends on what the admin has enabled — GET
-    // /api/gateways returns only those.
+    // Live-verified against GET https://feetandpedals.com/api/gateways:
+    // this deployment currently has exactly one gateway enabled —
+    // Razorpay (id 01m234gt1dqs788xbwh3bkv4ma, gateway_type "autometic" —
+    // a typo in their own data for "automatic", as opposed to a manual/
+    // bank-transfer gateway). Eventiq's generic docs list PayPal/Stripe/
+    // SSLCommerz/Flutterwave/Paystack/Bank as *possible* gateways, but only
+    // what GET /api/gateways actually returns is live for this deployment.
     return const [
-      PaymentOption(id: 'stripe', name: 'Credit / Debit Card', gatewayType: 'stripe'),
-      PaymentOption(id: 'paypal', name: 'PayPal', gatewayType: 'paypal'),
-      PaymentOption(id: 'bank', name: 'Bank Transfer', gatewayType: 'bank'),
+      PaymentOption(id: '01m234gt1dqs788xbwh3bkv4ma', name: 'Razorpay', gatewayType: 'autometic'),
     ];
   }
 

@@ -13,10 +13,17 @@ class PaymentScreen extends ConsumerWidget {
 
   IconData _iconFor(String gatewayType) {
     switch (gatewayType) {
+      // "autometic" (sic) is Razorpay's real gateway_type on this
+      // deployment, confirmed via GET /api/gateways — an API-integrated
+      // gateway as opposed to a manual one.
+      case 'autometic':
+      case 'automatic':
       case 'stripe':
+      case 'razorpay':
         return Icons.credit_card;
       case 'paypal':
         return Icons.account_balance_wallet_outlined;
+      case 'manual':
       case 'bank':
         return Icons.account_balance_outlined;
       case 'sslcommerz':

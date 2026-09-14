@@ -16,3 +16,26 @@ final DateFormat _time = DateFormat('h:mm a');
 String formatEventDate(DateTime? date) => date == null ? '' : _dayMonth.format(date);
 String formatEventDateShort(DateTime? date) => date == null ? '' : _dayMonthShort.format(date);
 String formatEventTime(DateTime? date) => date == null ? '' : _time.format(date);
+
+/// Live-verified against `GET https://feetandpedals.com/api/events`:
+/// `start_date`/`end_date` come back as `"Sep 30, 2026"` (`MMM d, yyyy`),
+/// not ISO 8601 — while the mock catalog (and possibly other endpoints,
+/// unconfirmed) use ISO 8601. Tries both rather than assuming one.
+final List<DateFormat> _apiDateFormats = [
+  DateFormat('MMM d, yyyy'),
+  DateFormat('MMM d, yyyy HH:mm'),
+];
+
+DateTime? parseApiDate(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final iso = DateTime.tryParse(value);
+  if (iso != null) return iso;
+  for (final format in _apiDateFormats) {
+    try {
+      return format.parseStrict(value);
+    } on FormatException {
+      continue;
+    }
+  }
+  return null;
+}

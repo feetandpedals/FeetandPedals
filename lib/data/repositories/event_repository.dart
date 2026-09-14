@@ -61,12 +61,11 @@ class MockEventRepository implements EventRepository {
 class ApiEventRepository implements EventRepository {
   final ApiClient _client = ApiClient.instance;
 
-  // Shape is unconfirmed for this deployment as of the last live check —
-  // `curl https://feetandpedals.com/api/categories` showed a *standard
-  // Laravel paginator* directly under `data` (`data.data[]`), contradicting
-  // the generic docs' `data.events[]` example for the sibling /api/events
-  // endpoint. Try both: standard paginator first (the pattern actually
-  // observed live on this deployment), then the documented `events` key.
+  // Confirmed live against https://feetandpedals.com/api/events: a standard
+  // Laravel paginator directly under `data` (`data.data[]`), matching
+  // /api/categories and the reference app's assumption — not the generic
+  // docs' `data.events[]` example. The `events` fallback below is dead code
+  // kept only in case a future deployment differs.
   List<SportEvent> _parseEventsEnvelope(dynamic data) {
     final response = ApiResponse<Map<String, dynamic>>.fromJson(
       data as Map<String, dynamic>,

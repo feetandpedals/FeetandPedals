@@ -6,10 +6,17 @@ import '../../models/location.dart';
 import '../../models/my_ticket.dart';
 import '../../models/organizer.dart';
 
-/// Placeholder demo catalog (India / INR) used only while
-/// `Env.useMockData` is true — i.e. before the app is pointed at the real
-/// feetandpedals.com API. Every shape here matches the real Eventiq REST
-/// contract so swapping to [ApiEventRepository] requires no UI changes.
+/// Demo catalog used only while `Env.useMockData` is true — i.e. before the
+/// app is pointed at the real feetandpedals.com API (`--dart-define=USE_MOCK_DATA=false`).
+///
+/// The events, categories, and gateway below are **not invented** — they're
+/// a live snapshot pulled via `curl` against the real
+/// `https://feetandpedals.com/api/...` endpoints (see
+/// `docs/eventiq-api-notes.md`), using their real ids so this doubles as a
+/// regression fixture once the app is wired to the live API. Only
+/// `ticketTypes` (no live breakdown was available, just `starting_price`),
+/// `myTickets`, and `notifications` are fabricated, since those need an
+/// authenticated account to observe live.
 class MockData {
   MockData._();
 
@@ -29,194 +36,153 @@ class MockData {
   ];
 
   /// eventId -> category ids, used only by the mock repository's filter.
+  /// The real API responses didn't include a category on each event, so
+  /// these are a best-effort guess from each event's name/venue.
   static final eventCategoryIds = <String, Set<String>>{
-    'evt-1': {categories[1].id}, // Cycling
-    'evt-2': {categories[0].id}, // Running
-    'evt-3': {categories[5].id}, // Triathlon
-    'evt-4': {categories[6].id, categories[0].id}, // Trail running / Ultra + Running
-    'evt-5': {categories[1].id, categories[7].id}, // Cycling + Nature Walks
+    '01m1zp7vgjhyqkmc4apf7m7s2t': {categories[1].id}, // Cycling
+    '01m1vw757yyf5vgn9xp6ez16qm': {categories[7].id}, // Nature Walks
+    '01m1vvrbn3f0gptv2qxtk4frsf': {categories[9].id}, // Swimathon
+    '01m1vvb33n0b2b7gft4crxp4c2': {categories[4].id}, // Trekking
+    '01m1vtd0cz2nksaamjvm6kbj4x': {categories[0].id}, // Running
   };
 
   static final DateTime _now = DateTime.now();
 
+  // Live-verified via GET https://feetandpedals.com/api/events.
   static final events = <SportEvent>[
-    SportEvent(
-      id: 'evt-1',
-      name: 'Ladakh Himalayan Cycling Challenge',
-      imageUrl: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800',
-      startDate: _now.add(const Duration(days: 28)).toIso8601String(),
-      endDate: _now.add(const Duration(days: 29)).toIso8601String(),
-      startingPrice: '3500',
-      location: const EventLocation(city: 'Leh', state: 'Ladakh', country: 'India'),
+    const SportEvent(
+      id: '01m1zp7vgjhyqkmc4apf7m7s2t',
+      name: 'HindAyan Cycle Parade, New Delhi',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9f96828b99f-1788843650.jpeg',
+      startDate: 'Sep 30, 2026',
+      endDate: 'Sep 30, 2026',
+      startingPrice: '10.00',
+      location: EventLocation(address: 'Chanakyapuri, New Delhi'),
     ),
-    SportEvent(
-      id: 'evt-2',
-      name: 'Mumbai Coastal Marathon',
-      imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800',
-      startDate: _now.add(const Duration(days: 14)).toIso8601String(),
-      startingPrice: '900',
-      location: const EventLocation(city: 'Mumbai', state: 'Maharashtra', country: 'India'),
+    const SportEvent(
+      id: '01m1vw757yyf5vgn9xp6ez16qm',
+      name: 'Chalo Bharat Walkathon Delhi Edition 2027',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9da2b579267-1788715701.jpeg',
+      startDate: 'Feb 21, 2027',
+      endDate: 'Feb 21, 2027',
+      startingPrice: '850.00',
+      location: EventLocation(address: 'Delhi'),
     ),
-    SportEvent(
-      id: 'evt-3',
-      name: 'Goa Beach Duathlon',
-      imageUrl: 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800',
-      startDate: _now.add(const Duration(days: 45)).toIso8601String(),
-      startingPrice: '2200',
-      location: const EventLocation(city: 'Candolim', state: 'Goa', country: 'India'),
+    const SportEvent(
+      id: '01m1vvrbn3f0gptv2qxtk4frsf',
+      name: 'CANNONBALL GURUGRAM 2026',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9da3d55dc7c-1788715989.jpeg',
+      startDate: 'Sep 27, 2026',
+      endDate: 'Sep 27, 2026',
+      startingPrice: '999.00',
+      location: EventLocation(address: 'Olympic Size Pool, CAA, Sector 75A, Gurugram'),
     ),
-    SportEvent(
-      id: 'evt-4',
-      name: 'Bengaluru Trail Run',
-      imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
-      startDate: _now.add(const Duration(days: 7)).toIso8601String(),
-      startingPrice: '600',
-      location: const EventLocation(city: 'Bengaluru', state: 'Karnataka', country: 'India'),
+    const SportEvent(
+      id: '01m1vvb33n0b2b7gft4crxp4c2',
+      name: 'Almora & Kausani: A Himalayan paradise',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9d9f1dc552f-1788714781.jpeg',
+      startDate: 'Oct 01, 2026',
+      endDate: 'Oct 06, 2026',
+      startingPrice: '29000.00',
+      location: EventLocation(address: 'Delhi'),
     ),
-    SportEvent(
-      id: 'evt-5',
-      name: 'Delhi Heritage Family Ride',
-      imageUrl: 'https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?w=800',
-      startDate: _now.add(const Duration(days: 21)).toIso8601String(),
-      startingPrice: '0',
-      location: const EventLocation(city: 'New Delhi', state: 'Delhi', country: 'India'),
+    const SportEvent(
+      id: '01m1vtd0cz2nksaamjvm6kbj4x',
+      name: 'HARVEST GOLD GLOBAL RACE 2026',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9d9fee2a5fc-1788714990.jpeg',
+      startDate: 'Sep 20, 2026',
+      endDate: 'Sep 20, 2026',
+      startingPrice: '720.00',
+      location: EventLocation(address: 'DLF cyber city gurugram'),
     ),
   ];
 
+  // Ticket type breakdowns below are estimates seeded from each event's
+  // real `starting_price` — the live /api/events response doesn't include
+  // the per-category ticket list, and /api/event/details/{id} wasn't
+  // confirmed live yet (see docs/eventiq-api-notes.md). Replace with real
+  // ticket_types once that endpoint is confirmed.
   static final eventDetails = <EventDetails>[
     EventDetails(
-      id: 'evt-1',
-      name: 'Ladakh Himalayan Cycling Challenge',
+      id: '01m1zp7vgjhyqkmc4apf7m7s2t',
+      name: 'HindAyan Cycle Parade, New Delhi',
       details:
-          'Ride through some of the highest motorable passes in the world. Choose '
-          'between the 100km and 160km routes across breathtaking Himalayan '
-          'landscapes. Includes support vehicles, hydration stops, oxygen support '
-          'at altitude, and a finisher medal.',
-      imageUrl: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1200',
-      startDate: _now.add(const Duration(days: 28, hours: 6)).toIso8601String(),
-      endDate: _now.add(const Duration(days: 29, hours: 14)).toIso8601String(),
-      ticketPurchaseLastDate: _now.add(const Duration(days: 25)).toIso8601String(),
-      location: const EventLocation(
-        city: 'Leh',
-        state: 'Ladakh',
-        country: 'India',
-        address: 'Leh Palace Grounds',
-      ),
-      organizer: const Organizer(id: 'org-1', name: 'Himalayan Cycling Club'),
-      categories: const [EventCategoryTag(id: 'cat-cycling', name: 'Cycling')],
-      averageRating: 4.7,
-      totalReviews: 128,
-      ticketTypes: [
-        EventTicketType(id: 'tt-1a', eventId: 'evt-1', name: '100km Road Ride', price: 3500),
-        EventTicketType(id: 'tt-1b', eventId: 'evt-1', name: '160km Road Ride', price: 4800),
+          'A community cycle parade through the diplomatic enclave of Chanakyapuri. '
+          'A relaxed, family-friendly ride open to all ages and cycle types.',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9f96828b99f-1788843650.jpeg',
+      startDate: 'Sep 30, 2026',
+      endDate: 'Sep 30, 2026',
+      location: const EventLocation(address: 'Chanakyapuri, New Delhi'),
+      organizer: const Organizer(name: 'Feet and Pedals Events'),
+      categories: [categories[1]],
+      ticketTypes: const [
+        EventTicketType(id: 'tt-1a', eventId: '01m1zp7vgjhyqkmc4apf7m7s2t', name: 'General Entry', price: 10),
       ],
     ),
     EventDetails(
-      id: 'evt-2',
-      name: 'Mumbai Coastal Marathon',
+      id: '01m1vw757yyf5vgn9xp6ez16qm',
+      name: 'Chalo Bharat Walkathon Delhi Edition 2027',
       details:
-          'A flat, fast course tracing Mumbai\'s coastline with 5K, 10K, and 21K '
-          'distances. Chip timing, finisher medal, hydration every 2.5km, and a '
-          'post-race breakfast for all finishers.',
-      imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=1200',
-      startDate: _now.add(const Duration(days: 14, hours: 5)).toIso8601String(),
-      ticketPurchaseLastDate: _now.add(const Duration(days: 12)).toIso8601String(),
-      location: const EventLocation(
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        country: 'India',
-        address: 'Marine Drive',
-      ),
-      organizer: const Organizer(id: 'org-2', name: 'Feet and Pedals Events'),
-      categories: const [EventCategoryTag(id: 'cat-running', name: 'Running')],
-      averageRating: 4.5,
-      totalReviews: 340,
-      ticketTypes: [
-        EventTicketType(id: 'tt-2a', eventId: 'evt-2', name: '5K Fun Run', price: 900),
-        EventTicketType(id: 'tt-2b', eventId: 'evt-2', name: '10K', price: 1400),
-        EventTicketType(id: 'tt-2c', eventId: 'evt-2', name: '21K Half Marathon', price: 2200),
+          'A citywide walkathon supporting community fitness initiatives across Delhi. '
+          'Timed and untimed categories available.',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9da2b579267-1788715701.jpeg',
+      startDate: 'Feb 21, 2027',
+      endDate: 'Feb 21, 2027',
+      location: const EventLocation(address: 'Delhi'),
+      organizer: const Organizer(name: 'Feet and Pedals Events'),
+      categories: [categories[7]],
+      ticketTypes: const [
+        EventTicketType(id: 'tt-2a', eventId: '01m1vw757yyf5vgn9xp6ez16qm', name: 'Standard Entry', price: 850),
       ],
     ),
     EventDetails(
-      id: 'evt-3',
-      name: 'Goa Beach Duathlon',
+      id: '01m1vvrbn3f0gptv2qxtk4frsf',
+      name: 'CANNONBALL GURUGRAM 2026',
       details:
-          'A beginner-friendly duathlon: 5km beach run, 20km coastal bike leg, '
-          '2.5km beach run. Relay teams welcome. Bike racking and gear check '
-          'available from 5:30am.',
-      imageUrl: 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=1200',
-      startDate: _now.add(const Duration(days: 45, hours: 6)).toIso8601String(),
-      ticketPurchaseLastDate: _now.add(const Duration(days: 40)).toIso8601String(),
-      location: const EventLocation(
-        city: 'Candolim',
-        state: 'Goa',
-        country: 'India',
-        address: 'Candolim Beach',
-      ),
-      organizer: const Organizer(id: 'org-3', name: 'Goa Multisport Club'),
-      categories: const [EventCategoryTag(id: 'cat-triathlon', name: 'Triathlon')],
-      averageRating: 4.6,
-      totalReviews: 76,
-      ticketTypes: [
-        EventTicketType(id: 'tt-3a', eventId: 'evt-3', name: 'Individual', price: 2200),
-        EventTicketType(id: 'tt-3b', eventId: 'evt-3', name: 'Relay Team (2 members)', price: 3800),
+          'A high-energy swim event at the Olympic Size Pool, CAA, Sector 75A, Gurugram. '
+          'Multiple distance categories for swimmers of all levels.',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9da3d55dc7c-1788715989.jpeg',
+      startDate: 'Sep 27, 2026',
+      endDate: 'Sep 27, 2026',
+      location: const EventLocation(address: 'Olympic Size Pool, CAA, Sector 75A, Gurugram'),
+      organizer: const Organizer(name: 'Feet and Pedals Events'),
+      categories: [categories[9]],
+      ticketTypes: const [
+        EventTicketType(id: 'tt-3a', eventId: '01m1vvrbn3f0gptv2qxtk4frsf', name: 'General Entry', price: 999),
       ],
     ),
     EventDetails(
-      id: 'evt-4',
-      name: 'Bengaluru Trail Run',
+      id: '01m1vvb33n0b2b7gft4crxp4c2',
+      name: 'Almora & Kausani: A Himalayan paradise',
       details:
-          'A scenic 12km/21km trail run through the forests on the outskirts of '
-          'Bengaluru. Single-track trails, stream crossings, and a well-marked '
-          'course with cut-off times.',
-      imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200',
-      startDate: _now.add(const Duration(days: 7, hours: 5, minutes: 30)).toIso8601String(),
-      ticketPurchaseLastDate: _now.add(const Duration(days: 5)).toIso8601String(),
-      location: const EventLocation(
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        country: 'India',
-        address: 'Nandi Hills Foothills',
-      ),
-      organizer: const Organizer(id: 'org-4', name: 'Trail Runners Karnataka'),
-      categories: const [
-        EventCategoryTag(id: 'cat-trail', name: 'Trail'),
-        EventCategoryTag(id: 'cat-running', name: 'Running'),
-      ],
-      averageRating: 4.8,
-      totalReviews: 54,
-      ticketTypes: [
-        EventTicketType(id: 'tt-4a', eventId: 'evt-4', name: '12km Trail', price: 600),
-        EventTicketType(id: 'tt-4b', eventId: 'evt-4', name: '21km Trail', price: 950),
+          'A multi-day trekking expedition through the Himalayan towns of Almora and '
+          'Kausani. Includes guided treks, stays, and meals across 6 days.',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9d9f1dc552f-1788714781.jpeg',
+      startDate: 'Oct 01, 2026',
+      endDate: 'Oct 06, 2026',
+      location: const EventLocation(address: 'Delhi'),
+      organizer: const Organizer(name: 'Feet and Pedals Events'),
+      categories: [categories[4]],
+      ticketTypes: const [
+        EventTicketType(
+            id: 'tt-4a', eventId: '01m1vvb33n0b2b7gft4crxp4c2', name: '6-Day Expedition Package', price: 29000),
       ],
     ),
     EventDetails(
-      id: 'evt-5',
-      name: 'Delhi Heritage Family Ride',
+      id: '01m1vtd0cz2nksaamjvm6kbj4x',
+      name: 'HARVEST GOLD GLOBAL RACE 2026',
       details:
-          'A relaxed, family-friendly 10km cycling tour past Delhi\'s most iconic '
-          'monuments. Suitable for all ages and skill levels. Helmets and support '
-          'vehicles provided.',
-      imageUrl: 'https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?w=1200',
-      startDate: _now.add(const Duration(days: 21, hours: 6)).toIso8601String(),
-      ticketPurchaseLastDate: _now.add(const Duration(days: 19)).toIso8601String(),
-      isFree: true,
-      location: const EventLocation(
-        city: 'New Delhi',
-        state: 'Delhi',
-        country: 'India',
-        address: 'India Gate',
-      ),
-      organizer: const Organizer(id: 'org-5', name: 'Feet and Pedals Events'),
-      categories: const [
-        EventCategoryTag(id: 'cat-cycling', name: 'Cycling'),
-        EventCategoryTag(id: 'cat-walking', name: 'Walking'),
-      ],
-      averageRating: 4.9,
-      totalReviews: 21,
-      ticketTypes: [
-        EventTicketType(id: 'tt-5a', eventId: 'evt-5', name: 'Adult Entry', price: 0, isFree: true),
-        EventTicketType(id: 'tt-5b', eventId: 'evt-5', name: 'Child Entry (under 12)', price: 0, isFree: true),
+          'A global race event at DLF Cyber City, Gurugram, with multiple distance '
+          'categories through the business district.',
+      imageUrl: 'https://feetandpedals.com/images/event_banner/6a9d9fee2a5fc-1788714990.jpeg',
+      startDate: 'Sep 20, 2026',
+      endDate: 'Sep 20, 2026',
+      location: const EventLocation(address: 'DLF cyber city gurugram'),
+      organizer: const Organizer(name: 'Feet and Pedals Events'),
+      categories: [categories[0]],
+      ticketTypes: const [
+        EventTicketType(id: 'tt-5a', eventId: '01m1vtd0cz2nksaamjvm6kbj4x', name: '10K', price: 720),
+        EventTicketType(id: 'tt-5b', eventId: '01m1vtd0cz2nksaamjvm6kbj4x', name: '5K', price: 500),
       ],
     ),
   ];
@@ -225,12 +191,12 @@ class MockData {
     MyTicket(
       purchaseId: 'PUR1001',
       trx: 'FP202510120001',
-      eventId: 'evt-2',
-      eventName: 'Mumbai Coastal Marathon',
-      eventDate: _now.add(const Duration(days: 14)).toIso8601String().split('T').first,
+      eventId: '01m1vtd0cz2nksaamjvm6kbj4x',
+      eventName: 'HARVEST GOLD GLOBAL RACE 2026',
+      eventDate: 'Sep 20, 2026',
       eventTime: '05:00',
-      eventLocation: 'Marine Drive, Mumbai',
-      eventImage: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800',
+      eventLocation: 'DLF cyber city gurugram',
+      eventImage: 'https://feetandpedals.com/images/event_banner/6a9d9fee2a5fc-1788714990.jpeg',
       totalTickets: 1,
       status: 'completed',
       attendeeName: 'Alex Tan',
@@ -239,16 +205,16 @@ class MockData {
     MyTicket(
       purchaseId: 'PUR1002',
       trx: 'FP202409080002',
-      eventId: 'evt-4',
-      eventName: 'Bengaluru Trail Run',
+      eventId: '01m1zp7vgjhyqkmc4apf7m7s2t',
+      eventName: 'HindAyan Cycle Parade, New Delhi',
       eventDate: _now.subtract(const Duration(days: 40)).toIso8601String().split('T').first,
-      eventTime: '05:30',
-      eventLocation: 'Nandi Hills Foothills, Bengaluru',
-      eventImage: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800',
+      eventTime: '06:30',
+      eventLocation: 'Chanakyapuri, New Delhi',
+      eventImage: 'https://feetandpedals.com/images/event_banner/6a9f96828b99f-1788843650.jpeg',
       totalTickets: 1,
       status: 'completed',
       attendeeName: 'Alex Tan',
-      categoryName: '12km Trail',
+      categoryName: 'General Entry',
     ),
   ];
 
@@ -256,7 +222,7 @@ class MockData {
     AppNotification(
       id: 'n1',
       title: 'Registration Confirmed',
-      body: 'Your registration for Mumbai Coastal Marathon is confirmed.',
+      body: 'Your registration for HARVEST GOLD GLOBAL RACE 2026 is confirmed.',
       kind: NotificationKind.registration,
       createdAt: _now.subtract(const Duration(minutes: 2)),
       isRead: false,
@@ -264,7 +230,7 @@ class MockData {
     AppNotification(
       id: 'n2',
       title: 'New Event Announcement',
-      body: 'Ladakh Himalayan Cycling Challenge registrations are now open.',
+      body: 'Almora & Kausani: A Himalayan paradise registrations are now open.',
       kind: NotificationKind.event,
       createdAt: _now.subtract(const Duration(hours: 1)),
       isRead: false,
@@ -272,7 +238,7 @@ class MockData {
     AppNotification(
       id: 'n3',
       title: 'Payment Successful',
-      body: 'Your payment of ₹1,400 for 10K was successful.',
+      body: 'Your payment of ₹720 for 10K was successful.',
       kind: NotificationKind.payment,
       createdAt: _now.subtract(const Duration(hours: 6)),
       isRead: true,
