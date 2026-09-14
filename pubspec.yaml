@@ -1,0 +1,57 @@
+name: feetandpedals
+description: "Feet and Pedals — discover events, register, and manage your tickets."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^14.6.2
+
+  # Networking
+  dio: ^5.7.0
+
+  # Secure token storage
+  flutter_secure_storage: ^9.2.2
+
+  # Images
+  cached_network_image: ^3.4.1
+
+  # QR codes for tickets
+  qr_flutter: ^4.1.0
+
+  # Formatting dates/currency
+  intl: ^0.19.0
+
+  # Local lightweight persistence (onboarding seen, cached lists)
+  shared_preferences: ^2.3.3
+
+  # Equality helpers for simple model classes
+  collection: ^1.19.0
+
+  # Social sign-in
+  google_sign_in: ^6.2.2
+  sign_in_with_apple: ^6.1.4
+  flutter_facebook_auth: ^7.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
