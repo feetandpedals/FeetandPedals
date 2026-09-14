@@ -10,6 +10,12 @@ the long-term athlete ecosystem.
 
 ## Status
 
+- **Current priority: Android first.** iOS is fully scaffolded and builds
+  (code is shared — there's one Flutter codebase, not a separate iOS
+  build), but iOS-specific setup (Apple Sign-In capability, Google/Facebook
+  iOS OAuth client registration, Info.plist wiring) is intentionally on
+  hold until Android testing is further along. Nothing below needs to
+  change to pick that back up later.
 - UI/UX: fully built for every MVP1 screen (splash, login/signup with
   social login, home, event listing + search/filters, event details,
   4-step registration, payment, payment result, my tickets + QR, ticket
