@@ -13,20 +13,16 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   IconData _iconFor(String name) {
-    switch (name.toLowerCase()) {
-      case 'running':
-        return Icons.directions_run;
-      case 'cycling':
-        return Icons.pedal_bike;
-      case 'triathlon':
-        return Icons.pool;
-      case 'walking':
-        return Icons.directions_walk;
-      case 'trail':
-        return Icons.terrain;
-      default:
-        return Icons.event;
-    }
+    final n = name.toLowerCase();
+    if (n.contains('running') || n.contains('trail')) return Icons.directions_run;
+    if (n.contains('cycling')) return Icons.pedal_bike;
+    if (n.contains('swim')) return Icons.pool;
+    if (n.contains('hik')) return Icons.terrain;
+    if (n.contains('trek')) return Icons.landscape_outlined;
+    if (n.contains('triathlon')) return Icons.emoji_events_outlined;
+    if (n.contains('duathlon')) return Icons.sports_score_outlined;
+    if (n.contains('walk')) return Icons.directions_walk;
+    return Icons.event;
   }
 
   @override

@@ -1,24 +1,56 @@
-# Eventiq API — notes from the official documentation
+# Eventiq API — notes from the official docs + live verification
 
 Distilled from the `documentation_v2.1.zip` package (Eventiq's own docs site)
-supplied for this project. This supersedes assumptions made from reading the
-Eventiq reference Flutter app's source alone, and is what `lib/data/repositories/`
-and the models in `lib/models/` are now built against.
+supplied for this project, and cross-checked live against
+`https://feetandpedals.com` itself. Where the two disagree, live evidence
+wins — this file says which source each fact rests on.
 
-## Base URL — you already have it
+## Base URL — confirmed live
 
-There is no separate "API host" to obtain. From `app_installation.html`:
+`https://feetandpedals.com` is the base URL, confirmed two ways:
 
-> Use your admin URL as the base URL. For example: if your admin URL is
-> `https://your_domain.com/admin` then the base URL is `https://your_domain.com`.
-
-So the base URL is just wherever the Eventiq admin panel is installed —
-almost certainly `https://feetandpedals.com` itself, or whatever domain/subdomain
-the Laravel app was deployed to (no trailing slash). Set it via:
+1. `app_installation.html`: "Use your admin URL as the base URL... if your
+   admin URL is `https://your_domain.com/admin` then the base URL is
+   `https://your_domain.com`" — the admin panel is at
+   `feetandpedals.com/admin`.
+2. **Live-verified**: `curl https://feetandpedals.com/api/categories`
+   returned a real `200` with real category data (see below). This is the
+   default in `lib/core/config/env.dart` now.
 
 ```bash
 flutter run --dart-define=API_BASE_URL=https://feetandpedals.com --dart-define=USE_MOCK_DATA=false
 ```
+
+## Live-verified: `GET /api/categories`
+
+```
+curl -i https://feetandpedals.com/api/categories
+```
+returned real data — 10 categories: Running, Cycling, Swimming, Hiking,
+Trekking, Triathlon, "Trail running / Ultra", Nature Walks, Duathlon,
+Swimathon (their real ids are now in `lib/data/mock/mock_data.dart`).
+
+**Important correction to the docs**: the response is a **standard Laravel
+paginator directly under `data`** —
+`{status, message, data: {current_page, data: [...], first_page_url, ...}}`
+— matching the *reference app's* assumption, **not** the generic docs'
+bare-array example (`data: [...]`). Fields on each category (`id`, `name`,
+`image`, `image_url`) do match both sources.
+
+This casts doubt on the generic docs' custom envelope for `/api/events`
+(`data.events` + `data.pagination`) and `/api/event/details/{id}`
+(`data.event`) too — those are unverified for this specific deployment.
+`lib/data/repositories/event_repository.dart` now tries the standard-
+paginator shape first and falls back to the documented shape, but **this
+still needs a live check**:
+
+```bash
+curl -i https://feetandpedals.com/api/events
+curl -i "https://feetandpedals.com/api/event/details/<a-real-event-id-from-the-events-response>"
+curl -i https://feetandpedals.com/api/gateways
+```
+If you (or whoever has terminal access to the box) can run these three and
+paste the output back, I can drop the guessing entirely.
 
 ## Auth
 

@@ -16,13 +16,13 @@ class Env {
   /// Base URL of the Eventiq-backed feetandpedals.com API — no trailing
   /// slash, and no `/api` suffix (`ApiEndpoints` appends that).
   ///
-  /// Per Eventiq's own install docs, this is simply wherever the admin
-  /// panel is deployed, with `/admin` dropped: the admin panel was
-  /// confirmed at `feetandpedals.com/admin`, so this defaults to
-  /// `https://feetandpedals.com`. Override with `--dart-define=API_BASE_URL=...`
-  /// if the Laravel API actually lives on a different host/subdomain than
-  /// the admin panel — not yet confirmed against the live site from this
-  /// environment (see README "What's needed to go live").
+  /// Confirmed live: `curl https://feetandpedals.com/api/categories`
+  /// returned a real 200 with real category data (see
+  /// `docs/eventiq-api-notes.md`). Per Eventiq's own install docs this is
+  /// also just the admin panel's domain with `/admin` dropped — the admin
+  /// panel is at `feetandpedals.com/admin`. Override with
+  /// `--dart-define=API_BASE_URL=...` only if a different environment
+  /// (staging, etc.) is needed.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://feetandpedals.com',

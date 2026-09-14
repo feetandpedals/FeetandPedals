@@ -61,15 +61,19 @@ class MockEventRepository implements EventRepository {
 class ApiEventRepository implements EventRepository {
   final ApiClient _client = ApiClient.instance;
 
-  // The documented envelope nests the array under `data.events` (plus
-  // `data.pagination`/`data.filters`), not a bare Laravel paginator under
-  // `data` — see developer-api-architecture.html, GET /api/events.
+  // Shape is unconfirmed for this deployment as of the last live check —
+  // `curl https://feetandpedals.com/api/categories` showed a *standard
+  // Laravel paginator* directly under `data` (`data.data[]`), contradicting
+  // the generic docs' `data.events[]` example for the sibling /api/events
+  // endpoint. Try both: standard paginator first (the pattern actually
+  // observed live on this deployment), then the documented `events` key.
   List<SportEvent> _parseEventsEnvelope(dynamic data) {
     final response = ApiResponse<Map<String, dynamic>>.fromJson(
       data as Map<String, dynamic>,
       (p0) => p0 as Map<String, dynamic>,
     );
-    final events = response.data?['events'] as List<dynamic>? ?? const [];
+    final raw = response.data ?? const {};
+    final events = (raw['data'] as List<dynamic>?) ?? (raw['events'] as List<dynamic>?) ?? const [];
     return events.map((e) => SportEvent.fromJson(e as Map<String, dynamic>)).toList();
   }
 
@@ -101,8 +105,11 @@ class ApiEventRepository implements EventRepository {
           data as Map<String, dynamic>,
           (p0) => p0 as Map<String, dynamic>,
         );
-        // The event is nested under `data.event`, per the documented shape.
-        final eventJson = response.data?['event'] as Map<String, dynamic>? ?? response.data ?? const {};
+        // Same uncertainty as fetchEvents above: try `data` itself first
+        // (the reference-app pattern, matching what was actually observed
+        // live for /api/categories), then the documented `data.event`.
+        final raw = response.data ?? const {};
+        final eventJson = (raw['id'] != null ? raw : raw['event'] as Map<String, dynamic>?) ?? raw;
         return EventDetails.fromJson(eventJson);
       },
     );
@@ -113,13 +120,16 @@ class ApiEventRepository implements EventRepository {
     return _client.request(
       (dio) => dio.get(ApiEndpoints.categories),
       parse: (data) {
-        final response = ApiResponse<List<dynamic>>.fromJson(
+        // Confirmed live against https://feetandpedals.com/api/categories:
+        // `data` is a standard Laravel paginator, i.e. the array is at
+        // `data.data`, not `data` itself — matches the reference app's
+        // assumption, not the generic docs' bare-array example.
+        final response = ApiResponse<Map<String, dynamic>>.fromJson(
           data as Map<String, dynamic>,
-          (p0) => p0 as List<dynamic>,
+          (p0) => p0 as Map<String, dynamic>,
         );
-        return (response.data ?? const [])
-            .map((e) => EventCategoryTag.fromJson(e as Map<String, dynamic>))
-            .toList();
+        final items = response.data?['data'] as List<dynamic>? ?? const [];
+        return items.map((e) => EventCategoryTag.fromJson(e as Map<String, dynamic>)).toList();
       },
     );
   }

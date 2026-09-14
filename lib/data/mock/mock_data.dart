@@ -13,21 +13,28 @@ import '../../models/organizer.dart';
 class MockData {
   MockData._();
 
+  // Real category ids/names confirmed live from
+  // GET https://feetandpedals.com/api/categories.
   static const categories = [
-    EventCategoryTag(id: 'cat-running', name: 'Running'),
-    EventCategoryTag(id: 'cat-cycling', name: 'Cycling'),
-    EventCategoryTag(id: 'cat-triathlon', name: 'Triathlon'),
-    EventCategoryTag(id: 'cat-walking', name: 'Walking'),
-    EventCategoryTag(id: 'cat-trail', name: 'Trail'),
+    EventCategoryTag(id: '01m1trjt5hynp49stv3j94wpx1', name: 'Running'),
+    EventCategoryTag(id: '01m1trkqtaf1cmkkdrx8jfn2xv', name: 'Cycling'),
+    EventCategoryTag(id: '01m1trv0najxjngqd1g7wktf30', name: 'Swimming'),
+    EventCategoryTag(id: '01m1trvpzmk4vcz3kn5ar6mf3v', name: 'Hiking'),
+    EventCategoryTag(id: '01m1trwf2azp43t1gymcn4x5sm', name: 'Trekking'),
+    EventCategoryTag(id: '01m1trx6k676jm9xvkx71ytaxb', name: 'Triathlon'),
+    EventCategoryTag(id: '01m1try02wph62qrmqhvqhv1ce', name: 'Trail running / Ultra'),
+    EventCategoryTag(id: '01m1tryh0rcqav1an5h3g582s5', name: 'Nature Walks'),
+    EventCategoryTag(id: '01m1trz22jfdp1zkm48qw0jrk3', name: 'Duathlon'),
+    EventCategoryTag(id: '01m1trzmv9jbtcazwedfpj8vr6', name: 'Swimathon'),
   ];
 
   /// eventId -> category ids, used only by the mock repository's filter.
   static final eventCategoryIds = <String, Set<String>>{
-    'evt-1': {'cat-cycling'},
-    'evt-2': {'cat-running'},
-    'evt-3': {'cat-triathlon'},
-    'evt-4': {'cat-trail', 'cat-running'},
-    'evt-5': {'cat-cycling', 'cat-walking'},
+    'evt-1': {categories[1].id}, // Cycling
+    'evt-2': {categories[0].id}, // Running
+    'evt-3': {categories[5].id}, // Triathlon
+    'evt-4': {categories[6].id, categories[0].id}, // Trail running / Ultra + Running
+    'evt-5': {categories[1].id, categories[7].id}, // Cycling + Nature Walks
   };
 
   static final DateTime _now = DateTime.now();

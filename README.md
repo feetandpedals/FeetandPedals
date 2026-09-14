@@ -87,13 +87,15 @@ requests are actively rejected, not just timing out), and raw SSH is
 blocked the same way — so the following still need to come from the Feet
 and Pedals team or be verified by someone who can reach the site directly.
 
-1. ~~Confirm the base URL~~ **Done** — the admin panel is at
-   `feetandpedals.com/admin`, so `API_BASE_URL` now defaults to
-   `https://feetandpedals.com` in `lib/core/config/env.dart` (per Eventiq's
-   own install docs: base URL = admin URL with `/admin` dropped). This
-   hasn't been verified reachable from this sandbox — worth a sanity check
-   (e.g. `curl https://feetandpedals.com/api/categories`, a public,
-   unauthenticated endpoint) from a machine that isn't network-restricted.
+1. ~~Confirm the base URL~~ **Done and live-verified** —
+   `API_BASE_URL` defaults to `https://feetandpedals.com` in
+   `lib/core/config/env.dart`. `curl https://feetandpedals.com/api/categories`
+   was run and returned real category data (10 real categories, now used in
+   the mock catalog). That same check also revealed the response envelope
+   for that endpoint doesn't match the generic Eventiq docs — see
+   `docs/eventiq-api-notes.md` for what's confirmed vs. still guessed for
+   `/api/events`, `/api/event/details/{id}`, and `/api/gateways` (three
+   more `curl` commands there would settle it).
 2. **A test account** on that backend (or confirm registration is open) so
    I can validate login → register → pay → ticket end-to-end against real
    data, not just the mock layer.
