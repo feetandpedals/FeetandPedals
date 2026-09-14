@@ -171,7 +171,9 @@ class _OverviewTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            event.details.isEmpty ? 'No description provided.' : event.details,
+            // event.details is rich HTML straight from the CMS's editor
+            // (confirmed live) — detailsPlainText strips it for display.
+            event.details.isEmpty ? 'No description provided.' : event.detailsPlainText,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
           if (event.totalReviews > 0) ...[

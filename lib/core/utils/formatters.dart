@@ -39,3 +39,33 @@ DateTime? parseApiDate(String? value) {
   }
   return null;
 }
+
+final RegExp _htmlTag = RegExp(r'<[^>]*>');
+final RegExp _blockBoundary = RegExp(r'</(p|div|li|br|tr)>', caseSensitive: false);
+final RegExp _multiSpace = RegExp(r'[ \t]+');
+final RegExp _multiNewline = RegExp(r'\n{3,}');
+
+/// Live-verified against `GET https://feetandpedals.com/api/event/details/{id}`:
+/// `details` is rich HTML (deeply nested `<div>`/`<span>` with large inline
+/// `style` attributes from a WYSIWYG editor), not plain text. This is a
+/// best-effort plain-text reduction for display until the app renders real
+/// HTML (e.g. via a package like `flutter_html`) — tables and links lose
+/// their structure, but paragraph/line breaks and readable text survive.
+String stripHtml(String html) {
+  if (html.isEmpty) return html;
+  final withBreaks = html.replaceAll(_blockBoundary, '\n');
+  final withoutTags = withBreaks.replaceAll(_htmlTag, '');
+  final unescaped = withoutTags
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  return unescaped
+      .split('\n')
+      .map((line) => line.replaceAll(_multiSpace, ' ').trim())
+      .join('\n')
+      .replaceAll(_multiNewline, '\n\n')
+      .trim();
+}

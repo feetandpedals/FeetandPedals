@@ -91,6 +91,11 @@ class EventDetails {
   DateTime? get startDateTime => parseApiDate(startDate);
   DateTime? get endDateTime => parseApiDate(endDate);
 
+  /// `details` is rich HTML straight from a WYSIWYG editor (confirmed live)
+  /// — this is a plain-text reduction for display until the app renders
+  /// real HTML.
+  String get detailsPlainText => stripHtml(details);
+
   double get lowestPrice {
     if (ticketTypes.isEmpty) return 0;
     return ticketTypes.map((t) => t.discountedPrice).reduce((a, b) => a < b ? a : b);
@@ -110,9 +115,12 @@ class EventDetails {
       isFree: json['is_free'] == 1 || json['is_free'] == true,
       ticketMaxBuy: int.tryParse((json['ticket_max_buy'] ?? 10).toString()) ?? 10,
       ticketPurchaseLastDate: (json['ticket_purchase_last_date'] ?? '').toString(),
-      // Some deployments return a nested `locations`/`location` object
-      // (city/state/country/address); the documented API instead returns a
-      // single flat `address` string — support both.
+      // Live-verified: /event/details/{id} nests a `locations` object,
+      // /events (list) nests a `location` object — both are the
+      // reference-app shape (city/state/country/address, though every
+      // field but `address` was null on live data). The flat `address`
+      // fallback below is for the (now-disproven-for-this-deployment)
+      // documented shape, kept only for safety.
       location: json['locations'] != null || json['location'] != null
           ? EventLocation.fromJson(
               json['locations'] as Map<String, dynamic>? ?? json['location'] as Map<String, dynamic>?)

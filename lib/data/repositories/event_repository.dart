@@ -104,9 +104,9 @@ class ApiEventRepository implements EventRepository {
           data as Map<String, dynamic>,
           (p0) => p0 as Map<String, dynamic>,
         );
-        // Same uncertainty as fetchEvents above: try `data` itself first
-        // (the reference-app pattern, matching what was actually observed
-        // live for /api/categories), then the documented `data.event`.
+        // Confirmed live: `data` IS the event object directly, not nested
+        // under `data.event` as the generic docs claimed. The `event`
+        // fallback below is dead code kept only for safety.
         final raw = response.data ?? const {};
         final eventJson = (raw['id'] != null ? raw : raw['event'] as Map<String, dynamic>?) ?? raw;
         return EventDetails.fromJson(eventJson);

@@ -65,20 +65,50 @@ PayPal/Stripe/SSLCommerz/Flutterwave/Paystack/Bank list describes what
 Eventiq *supports*, not what's live here — corrected the mock payment
 option to just Razorpay.
 
-## Not yet confirmed: `GET /api/event/details/{id}`
-
-One attempt returned a 404, but the request used the literal placeholder
-text instead of a real event id — inconclusive. Retry with a real id from
-the `/api/events` response above, e.g.:
+## Confirmed live: `GET /api/event/details/{id}`
 
 ```bash
 curl -i https://feetandpedals.com/api/event/details/01m1zp7vgjhyqkmc4apf7m7s2t
 ```
 
-Until this is confirmed, `event_repository.dart`'s `fetchEventDetails`
-tries the flat shape first (`data` *is* the event, matching the
-reference-app/categories/events pattern) and falls back to the documented
-`data.event` nesting.
+`data` **is** the event object directly (matching every other endpoint's
+flat pattern) — not nested under `data.event` as the generic docs claimed.
+`event_repository.dart`'s flat-first fallback is now confirmed correct.
+
+Other things this confirmed:
+
+- **`details` is rich HTML** straight from a WYSIWYG editor — deeply nested
+  `<div>`/`<span>` tags with large inline `style` attributes, not plain
+  text. Added `stripHtml()` in `formatters.dart` and
+  `EventDetails.detailsPlainText`, now used by the Overview tab. A real
+  HTML-rendering widget (e.g. `flutter_html`) would look better long-term.
+- **Location key differs by endpoint**: `locations` (plural) in event
+  details, `location` (singular) in the events list — both nested objects,
+  both handled.
+- **Dates differ by endpoint too**: event details returns ISO 8601
+  (`"2026-09-30T05:01:00.000000Z"`), the events list returns
+  `"Sep 30, 2026"`. Both are genuinely real; `parseApiDate()` already
+  handled both before this was confirmed.
+- **`ticket_types` — real, important correction**: each event currently has
+  exactly **one** ticket type, named after its category (e.g. "Cycling",
+  "Running"), not multiple price tiers ("Early Bird"/"VIP"/etc.) — the
+  earlier fabricated multi-tier mock data was wrong. Also, a ticket type's
+  `number_of_tickets` is its **total inventory** (150–2,500 in the live
+  sample), not a per-order purchase limit — the app was using it as one
+  (`EventTicketType.maxPerOrder`), which would have let someone select
+  hundreds of tickets in the stepper. Fixed: renamed to `totalAvailable`,
+  and the registration screen's quantity cap now uses the *event's*
+  `ticket_max_buy` instead (clamped to remaining inventory when known).
+- **Categories per event, confirmed** (some are counter-intuitive but
+  real): HindAyan Cycle Parade → Cycling; Chalo Bharat **Walkathon** →
+  Triathlon (not a walking category); CANNONBALL GURUGRAM → Swimming +
+  Triathlon; Almora & Kausani → Trekking; Harvest Gold Global Race →
+  Running.
+- **All 5 sample events share one real organizer**: "Nisha jain"
+  (`01m1vq2cmrp28rsye9ysgy79xk`) — replaced the earlier invented "Feet and
+  Pedals Events" organizer name in mock data.
+- `similar_events` (an array of full nested event objects) and `guests`
+  are present in the real payload but not modeled — out of MVP1 scope.
 
 ## Auth (docs only, not yet live-verified — no credentials to test with)
 
@@ -105,11 +135,12 @@ the backend supports it.
 
 ## Still to verify live
 
-- `GET /api/event/details/{id}` with a real id (see above).
-- Exact `checkout-confirmation` request/response shape (not in the docs
-  bundle — currently based on the reference app's source only; would need
-  a real login + a real purchase to observe, so needs a test account).
-- Whether `category` (the documented `/api/events` query param) expects a
-  category id or a slug/name — only matters once category filtering is
-  tested live.
-- Auth response shape (needs a test account).
+- Exact `checkout-confirmation` request/response shape, and the actual
+  `POST /api/event-ticket/purchase/{event}` request Feet and Pedals expects
+  (not in the docs bundle — currently based on the reference app's source
+  only; would need a real login + a real purchase to observe, so needs a
+  test account).
+- Whether `category` (the `/api/events` query param) expects a category id
+  or a slug/name — only matters once category filtering is tested live.
+- Auth response shape, and whether participant details are actually
+  persisted anywhere (needs a test account either way).

@@ -50,7 +50,13 @@ class CartController extends StateNotifier<CartState> {
     if (quantity <= 0) {
       next.remove(type.id);
     } else {
-      next[type.id] = quantity.clamp(0, type.maxPerOrder);
+      // The per-order cap is the *event's* ticket_max_buy (confirmed live:
+      // 150-2500), not a ticket type's number_of_tickets, which is total
+      // inventory for that type, not a sane per-order limit. Also never
+      // exceed remaining inventory when it's known.
+      final eventCap = state.event?.ticketMaxBuy ?? 10;
+      final cap = type.totalAvailable > 0 ? eventCap.clamp(0, type.totalAvailable) : eventCap;
+      next[type.id] = quantity.clamp(0, cap);
     }
     state = state.copyWith(quantities: next);
   }
