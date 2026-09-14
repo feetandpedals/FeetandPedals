@@ -20,11 +20,14 @@ class MockCheckoutRepository implements CheckoutRepository {
   @override
   Future<List<PaymentOption>> fetchPaymentOptions() async {
     await Future.delayed(const Duration(milliseconds: 300));
+    // Eventiq's actual supported gateways (payment-gateways.html): PayPal,
+    // Stripe, SSLCommerz, Flutterwave, Paystack, and Bank (manual). Which
+    // ones are active depends on what the admin has enabled — GET
+    // /api/gateways returns only those.
     return const [
-      PaymentOption(id: 'card', name: 'Credit / Debit Card', gatewayType: 'card'),
-      PaymentOption(id: 'upi', name: 'UPI', gatewayType: 'upi'),
-      PaymentOption(id: 'netbanking', name: 'Net Banking', gatewayType: 'netbanking'),
-      PaymentOption(id: 'wallet', name: 'Wallet', gatewayType: 'wallet'),
+      PaymentOption(id: 'stripe', name: 'Credit / Debit Card', gatewayType: 'stripe'),
+      PaymentOption(id: 'paypal', name: 'PayPal', gatewayType: 'paypal'),
+      PaymentOption(id: 'bank', name: 'Bank Transfer', gatewayType: 'bank'),
     ];
   }
 
@@ -77,18 +80,37 @@ class ApiCheckoutRepository implements CheckoutRepository {
     required List<TicketSelection> tickets,
     required String gatewayId,
   }) async {
-    // Step 1: register participant + reserve tickets.
+    // Step 1: reserve tickets. The documented payload
+    // (developer-api-architecture.html, POST /api/event-ticket/purchase/{event})
+    // is `{ selected_date, tickets: [{id, name, price, quantity}], total_amount }`
+    // with no attendee fields — stock Eventiq ticketing has no per-participant
+    // form. `participant` is still sent alongside it since the MVP1 scope
+    // explicitly requires collecting it (section 4, "Registration /
+    // Participant Details") — confirm with the backend team whether this
+    // needs a schema addition to persist it, or drop this field if they
+    // handle it elsewhere.
+    final total = tickets.fold<double>(0, (sum, t) => sum + t.subtotal);
     final purchaseId = await _client.request(
       (dio) => dio.post('${ApiEndpoints.bookTicket}/$eventId', data: {
+        'tickets': tickets
+            .map((t) => {
+                  'id': t.ticketTypeId,
+                  'name': t.ticketTypeName,
+                  'price': t.unitPrice,
+                  'quantity': t.quantity,
+                })
+            .toList(),
+        'total_amount': total,
         'participant': participant.toJson(),
-        'tickets': tickets.map((t) => t.toJson()).toList(),
       }),
       parse: (data) {
         final response = ApiResponse<Map<String, dynamic>>.fromJson(
           data as Map<String, dynamic>,
           (p0) => p0 as Map<String, dynamic>,
         );
-        return (response.data?['purchase_id'] ?? '').toString();
+        // The purchase object's own `id` field is the purchase id — it is
+        // not wrapped as `purchase_id`.
+        return (response.data?['id'] ?? '').toString();
       },
     );
 

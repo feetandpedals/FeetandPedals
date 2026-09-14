@@ -61,40 +61,50 @@ class MockEventRepository implements EventRepository {
 class ApiEventRepository implements EventRepository {
   final ApiClient _client = ApiClient.instance;
 
+  // The documented envelope nests the array under `data.events` (plus
+  // `data.pagination`/`data.filters`), not a bare Laravel paginator under
+  // `data` — see developer-api-architecture.html, GET /api/events.
+  List<SportEvent> _parseEventsEnvelope(dynamic data) {
+    final response = ApiResponse<Map<String, dynamic>>.fromJson(
+      data as Map<String, dynamic>,
+      (p0) => p0 as Map<String, dynamic>,
+    );
+    final events = response.data?['events'] as List<dynamic>? ?? const [];
+    return events.map((e) => SportEvent.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
   @override
   Future<List<SportEvent>> fetchEvents({String? query, String? categoryId}) {
     return _client.request(
       (dio) => dio.get(ApiEndpoints.events, queryParameters: {
         if (query != null && query.isNotEmpty) 'search': query,
-        if (categoryId != null && categoryId.isNotEmpty) 'category_id': categoryId,
+        if (categoryId != null && categoryId.isNotEmpty) 'category': categoryId,
       }),
-      parse: (data) {
-        final response = ApiResponse<PaginatedResponse<SportEvent>>.fromJson(
-          data as Map<String, dynamic>,
-          (p0) => PaginatedResponse.fromJson(
-            p0 as Map<String, dynamic>,
-            (e) => SportEvent.fromJson(e as Map<String, dynamic>),
-          ),
-        );
-        return response.data?.data ?? const [];
-      },
+      parse: _parseEventsEnvelope,
     );
   }
 
   @override
-  Future<List<SportEvent>> fetchFeaturedEvents() => fetchEvents();
+  Future<List<SportEvent>> fetchFeaturedEvents() {
+    return _client.request(
+      (dio) => dio.get(ApiEndpoints.events, queryParameters: {'featured': true}),
+      parse: _parseEventsEnvelope,
+    );
+  }
 
   @override
   Future<EventDetails> fetchEventDetails(String id) {
     return _client.request(
       (dio) => dio.get('${ApiEndpoints.eventDetails}/$id'),
-      parse: (data) => EventDetails.fromJson(
-        (ApiResponse<Map<String, dynamic>>.fromJson(
+      parse: (data) {
+        final response = ApiResponse<Map<String, dynamic>>.fromJson(
           data as Map<String, dynamic>,
           (p0) => p0 as Map<String, dynamic>,
-        ).data) ??
-            const {},
-      ),
+        );
+        // The event is nested under `data.event`, per the documented shape.
+        final eventJson = response.data?['event'] as Map<String, dynamic>? ?? response.data ?? const {};
+        return EventDetails.fromJson(eventJson);
+      },
     );
   }
 

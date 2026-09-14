@@ -13,14 +13,16 @@ class PaymentScreen extends ConsumerWidget {
 
   IconData _iconFor(String gatewayType) {
     switch (gatewayType) {
-      case 'card':
+      case 'stripe':
         return Icons.credit_card;
-      case 'upi':
-        return Icons.qr_code_2;
-      case 'netbanking':
-        return Icons.account_balance_outlined;
-      case 'wallet':
+      case 'paypal':
         return Icons.account_balance_wallet_outlined;
+      case 'bank':
+        return Icons.account_balance_outlined;
+      case 'sslcommerz':
+      case 'flutterwave':
+      case 'paystack':
+        return Icons.payments_outlined;
       default:
         return Icons.payment;
     }

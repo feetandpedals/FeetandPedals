@@ -63,32 +63,46 @@ auth token attached automatically via `TokenStorage` (flutter_secure_storage
 
 ## Where the API contract came from
 
-Feet and Pedals' backend runs the existing Laravel/Eventiq platform. To
-avoid guessing endpoint shapes, `lib/core/network/api_endpoints.dart` and
-every model's `fromJson` were reverse-engineered from the **Eventiq
-reference Flutter app** supplied for this purpose (see the scope doc,
-section 3) — its `AppStrings` endpoint list and model classes are mirrored
-exactly (`/api/login`, `/api/events`, `/api/event/details/{id}`,
-`/api/event-ticket/purchase/{id}`, `/api/checkout-confirmation`,
-`/api/my-tickets`, etc.), while the UI itself is a complete redesign per
-the scope doc's brand/UX direction (red/black/white, no Eventiq visual
-DNA carried over).
+Feet and Pedals' backend runs the existing Laravel/Eventiq platform.
+`lib/core/network/api_endpoints.dart` and every model's `fromJson` are
+built against **two** sources, cross-checked against each other:
+
+1. The **Eventiq reference Flutter app**'s source (`AppStrings`, its model
+   classes) — endpoint paths.
+2. Eventiq's own **official API documentation** (`documentation_v2.1.zip`)
+   — response envelope shapes, which occasionally disagree with what the
+   reference app's models assume. The docs won those disagreements; see
+   `docs/eventiq-api-notes.md` for the specifics (event list/detail
+   envelope nesting, favorite-flag field name, location shape, purchase-id
+   field, the real payment gateway list).
+
+The UI itself is a complete redesign per the scope doc's brand/UX
+direction (red/black/white, no Eventiq visual DNA carried over).
 
 ## What's needed to go live
 
 This sandbox can't reach `feetandpedals.com` directly (network egress is
 allow-listed, and raw SSH is blocked too), so the following still need to
-come from the Feet and Pedals team:
+come from the Feet and Pedals team. **You don't need a separate "API
+host"** — per Eventiq's own install docs, the API base URL is just wherever
+the Eventiq admin panel is installed (drop the `/admin` path), which is
+almost certainly `https://feetandpedals.com` itself or a subdomain of it.
 
-1. **Real API base URL** for `--dart-define=API_BASE_URL=...` above.
-2. **Confirmation the endpoint contract matches** what's in
-   `api_endpoints.dart`, or a list of where the real backend differs —
-   this is the "API audit" the scope doc calls for in section 10. In
-   particular `/social-login` is not part of the Eventiq reference app and
-   is marked as **missing, needs to be built** in `auth_repository.dart`.
-3. **A test account** on the real backend to validate login → register →
-   pay → ticket end-to-end.
-4. **Social login credentials** (unrelated to feetandpedals.com access —
+1. **Confirm the base URL** — visit the site's admin login (usually
+   `/admin`) and tell me that URL; I'll derive the API base from it. If
+   it's not obviously reachable, ask whoever manages hosting/StackCP where
+   the Laravel app is deployed.
+2. **A test account** on that backend (or confirm registration is open) so
+   I can validate login → register → pay → ticket end-to-end against real
+   data, not just the mock layer.
+3. **Confirm/build `/social-login`** — this endpoint doesn't exist in
+   stock Eventiq (confirmed via the docs). See `docs/eventiq-api-notes.md`
+   for the expected request/response shape to hand to the backend dev.
+4. **Confirm the open questions in `docs/eventiq-api-notes.md`** —
+   mainly the exact `checkout-confirmation` shape and whether participant
+   details (name/DOB/gender/emergency contact) are actually persisted
+   anywhere on the backend today.
+5. **Social login credentials** (unrelated to feetandpedals.com access —
    these come from each provider's own console):
    - Google: OAuth client IDs for Android (with the app's release/debug
      SHA-1 registered) and iOS, dropped into
@@ -101,10 +115,12 @@ come from the Feet and Pedals team:
      commented block in `Info.plist`.
    - Apple: enable the "Sign in with Apple" capability in the Xcode
      project (iOS only — Android doesn't need it).
-5. **Payment gateway config** — MVP1 assumes the mobile app never marks an
-   order paid itself; Laravel confirms it server-side via the gateway's
-   webhook (scope doc, section 6). No client-side payment SDK keys should
-   be needed beyond what `/gateways` already returns.
+6. **Which payment gateways are actually enabled** — Eventiq supports
+   PayPal, Stripe, SSLCommerz, Flutterwave, Paystack, and manual Bank
+   transfer (not India-specific rails like UPI — the mock data's earlier
+   guess there was wrong and has been corrected). `GET /api/gateways`
+   will tell the app which are live; no gateway API keys need to reach the
+   mobile app itself.
 
 Everything else — every screen, the whole data layer, the social-login UI
 and SDK wiring — is already built and works today against the mock layer.

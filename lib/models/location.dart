@@ -15,7 +15,10 @@ class EventLocation {
     this.longitude = '',
   });
 
-  String get displayLine => [city, state, country].where((s) => s.isNotEmpty).join(', ');
+  String get displayLine {
+    final parts = [city, state, country].where((s) => s.isNotEmpty).join(', ');
+    return parts.isNotEmpty ? parts : address;
+  }
 
   factory EventLocation.fromJson(Map<String, dynamic>? json) {
     if (json == null) return const EventLocation();

@@ -101,12 +101,19 @@ class EventDetails {
       imageUrl: (json['image_url'] ?? json['banner'] ?? '').toString(),
       startDate: (json['start_date'] ?? '').toString(),
       endDate: (json['end_date'] ?? '').toString(),
-      isFavorite: json['is_favorite'] == true,
+      // Field name differs between the Eventiq reference app (`is_favorite`)
+      // and the documented API (`is_favorited`) — accept either.
+      isFavorite: json['is_favorite'] == true || json['is_favorited'] == true,
       isFree: json['is_free'] == 1 || json['is_free'] == true,
       ticketMaxBuy: int.tryParse((json['ticket_max_buy'] ?? 10).toString()) ?? 10,
       ticketPurchaseLastDate: (json['ticket_purchase_last_date'] ?? '').toString(),
-      location: EventLocation.fromJson(json['locations'] as Map<String, dynamic>? ??
-          json['location'] as Map<String, dynamic>?),
+      // Some deployments return a nested `locations`/`location` object
+      // (city/state/country/address); the documented API instead returns a
+      // single flat `address` string — support both.
+      location: json['locations'] != null || json['location'] != null
+          ? EventLocation.fromJson(
+              json['locations'] as Map<String, dynamic>? ?? json['location'] as Map<String, dynamic>?)
+          : EventLocation(address: (json['address'] ?? '').toString()),
       organizer: Organizer.fromJson(json['organizer'] as Map<String, dynamic>?),
       categories: (json['categories'] as List<dynamic>? ?? const [])
           .map((e) => EventCategoryTag.fromJson(e as Map<String, dynamic>))
@@ -114,8 +121,13 @@ class EventDetails {
       ticketTypes: (json['ticket_types'] as List<dynamic>? ?? const [])
           .map((e) => EventTicketType.fromJson(e as Map<String, dynamic>))
           .toList(),
-      averageRating: (json['average_rating'] as num?) ?? 0,
-      totalReviews: (json['total_reviews'] as int?) ?? 0,
+      // Falls back to the organizer's rating when the event itself has no
+      // aggregate rating field (the documented API only shows rating on
+      // `organizer.average_rating`; `reviews` is a raw list with no count).
+      averageRating: (json['average_rating'] as num?) ??
+          (num.tryParse((json['organizer']?['average_rating'] ?? '').toString())) ??
+          0,
+      totalReviews: (json['total_reviews'] as int?) ?? (json['reviews'] as List<dynamic>?)?.length ?? 0,
     );
   }
 }
