@@ -81,17 +81,19 @@ direction (red/black/white, no Eventiq visual DNA carried over).
 
 ## What's needed to go live
 
-This sandbox can't reach `feetandpedals.com` directly (network egress is
-allow-listed, and raw SSH is blocked too), so the following still need to
-come from the Feet and Pedals team. **You don't need a separate "API
-host"** — per Eventiq's own install docs, the API base URL is just wherever
-the Eventiq admin panel is installed (drop the `/admin` path), which is
-almost certainly `https://feetandpedals.com` itself or a subdomain of it.
+This sandbox can't reach `feetandpedals.com` directly — its network egress
+is allow-listed by the organization and that domain isn't on it (confirmed:
+requests are actively rejected, not just timing out), and raw SSH is
+blocked the same way — so the following still need to come from the Feet
+and Pedals team or be verified by someone who can reach the site directly.
 
-1. **Confirm the base URL** — visit the site's admin login (usually
-   `/admin`) and tell me that URL; I'll derive the API base from it. If
-   it's not obviously reachable, ask whoever manages hosting/StackCP where
-   the Laravel app is deployed.
+1. ~~Confirm the base URL~~ **Done** — the admin panel is at
+   `feetandpedals.com/admin`, so `API_BASE_URL` now defaults to
+   `https://feetandpedals.com` in `lib/core/config/env.dart` (per Eventiq's
+   own install docs: base URL = admin URL with `/admin` dropped). This
+   hasn't been verified reachable from this sandbox — worth a sanity check
+   (e.g. `curl https://feetandpedals.com/api/categories`, a public,
+   unauthenticated endpoint) from a machine that isn't network-restricted.
 2. **A test account** on that backend (or confirm registration is open) so
    I can validate login → register → pay → ticket end-to-end against real
    data, not just the mock layer.
