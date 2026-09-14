@@ -7,8 +7,15 @@ gradle-wrapper.jar
 GeneratedPluginRegistrant.java
 .cxx/
 
-# Remember to never publicly share your keystore.
+# Remember to never publicly share your RELEASE keystore.
 # See https://flutter.dev/to/reference-keystore
 key.properties
 **/*.keystore
 **/*.jks
+
+# Exception: the shared DEBUG-only keystore in keys/ IS meant to be
+# committed — its password is the well-known Android default ("android"),
+# it never signs a release/Play Store build, and its SHA-1/Key Hash are
+# registered with Google/Facebook for social login. Committing it keeps
+# that registration valid across every dev machine and CI. See keys/README.md.
+!/keys/debug.keystore

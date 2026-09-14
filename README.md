@@ -107,16 +107,20 @@ and Pedals team or be verified by someone who can reach the site directly.
    details (name/DOB/gender/emergency contact) are actually persisted
    anywhere on the backend today.
 5. **Social login credentials** (unrelated to feetandpedals.com access —
-   these come from each provider's own console):
-   - Google: OAuth client IDs for Android (with the app's release/debug
-     SHA-1 registered) and iOS, dropped into
-     `android/app/google-services.json` and `ios/Runner/Info.plist`
-     (`GIDClientID` + URL scheme — see the commented block already in
-     `Info.plist`).
+   these come from each provider's own console). Package name/bundle ID to
+   register: `com.feetandpedals.app`. Debug SHA-1/Key Hash: see
+   `android/keys/README.md` (a checked-in shared debug keystore, so these
+   fingerprints are stable across every dev machine and CI).
+   - Google: OAuth client IDs for Android (package name + debug SHA-1
+     above), iOS (bundle ID), and Web application (for a `serverClientId`
+     the Laravel backend can actually verify) — the iOS Client ID +
+     reversed-client-ID URL scheme go in `ios/Runner/Info.plist` (see the
+     commented block already there).
    - Facebook: App ID + Client Token, into
      `android/app/src/main/res/values/strings.xml` (referenced from the
      commented `<meta-data>` block in `AndroidManifest.xml`) and the
-     commented block in `Info.plist`.
+     commented block in `Info.plist`. Register the Android platform with
+     the package name + Key Hash above, and iOS with the bundle ID.
    - Apple: enable the "Sign in with Apple" capability in the Xcode
      project (iOS only — Android doesn't need it).
 6. **Which payment gateways are actually enabled** — Eventiq supports
